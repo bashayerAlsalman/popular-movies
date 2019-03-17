@@ -13,7 +13,7 @@ import static net.bashayer.popularmovies.Constants.API_KEY;
 import static net.bashayer.popularmovies.Constants.MOVIES_URL;
 import static net.bashayer.popularmovies.Constants.TOKEN;
 
-public class NetworkUtils {
+public final class NetworkUtils {
 
     public static String getMoviesListResponse(String filter) throws IOException {
         URL url = getURL(filter);

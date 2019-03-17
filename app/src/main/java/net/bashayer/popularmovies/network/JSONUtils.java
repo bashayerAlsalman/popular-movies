@@ -17,7 +17,7 @@ import static net.bashayer.popularmovies.Constants.RESULTS_KEY;
 import static net.bashayer.popularmovies.Constants.TITLE_KEY;
 import static net.bashayer.popularmovies.Constants.VOTE_AVERAGE_KEY;
 
-public class JSONUtils {
+public final class JSONUtils {
 
 
     public static List<Movie> parseMoviesJSON(String response) throws JSONException {
