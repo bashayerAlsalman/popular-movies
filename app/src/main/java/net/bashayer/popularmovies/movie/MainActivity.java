@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements OnMovieClickListe
     private RecyclerView recyclerView;
     private List<MovieModel> movies;
     MovieViewModel viewModel;
+    private String selectedFilter = TOP_RATED_FILTER;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +40,13 @@ public class MainActivity extends AppCompatActivity implements OnMovieClickListe
         movies = new ArrayList<MovieModel>();
         initAdapter(); //init adapter with empty list
         viewModel = ViewModelProviders.of(this).get(MovieViewModel.class);
-        getMoviesList(TOP_RATED_FILTER);
+        getMoviesList();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        getMoviesList();
     }
 
     @Override
@@ -53,11 +60,14 @@ public class MainActivity extends AppCompatActivity implements OnMovieClickListe
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_popular) {
-            getMoviesList(POPULAR_FILTER);
+            selectedFilter = POPULAR_FILTER;
+            getMoviesList();
         } else if (id == R.id.action_top_rated) {
-            getMoviesList(TOP_RATED_FILTER);
+            selectedFilter = TOP_RATED_FILTER;
+            getMoviesList();
         } else if (id == R.id.action_favorite) {
-            getMoviesList(FAVORITE_MOVIES);
+            selectedFilter = FAVORITE_MOVIES;
+            getMoviesList();
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -72,9 +82,9 @@ public class MainActivity extends AppCompatActivity implements OnMovieClickListe
         recyclerView.setAdapter(adapter);
     }
 
-    private void getMoviesList(final String filter) {
-        if (filter.equals(POPULAR_FILTER) || filter.equals(TOP_RATED_FILTER)) {
-            viewModel.getMovies(false, filter).observe(this, new Observer<List<MovieModel>>() {
+    private void getMoviesList() {
+        if (selectedFilter.equals(POPULAR_FILTER) || selectedFilter.equals(TOP_RATED_FILTER)) {
+            viewModel.getMovies(false, selectedFilter).observe(this, new Observer<List<MovieModel>>() {
                 @Override
                 public void onChanged(List<MovieModel> movieModels) {
                     movies.clear();
@@ -82,8 +92,8 @@ public class MainActivity extends AppCompatActivity implements OnMovieClickListe
                     adapter.notifyDataSetChanged();
                 }
             });
-        } else if (filter.equals(FAVORITE_MOVIES)) {
-            viewModel.getMovies(true, "").observe(this, new Observer<List<MovieModel>>() {
+        } else if (selectedFilter.equals(FAVORITE_MOVIES)) {
+            viewModel.getMovies(true, selectedFilter).observe(this, new Observer<List<MovieModel>>() {
                 @Override
                 public void onChanged(List<MovieModel> movieModels) {
                     movies.clear();
