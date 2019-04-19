@@ -1,42 +1,44 @@
-package net.bashayer.popularmovies;
+package net.bashayer.popularmovies.movie;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import net.bashayer.popularmovies.network.JSONUtils;
-import net.bashayer.popularmovies.network.NetworkUtils;
-import net.bashayer.popularmovies.network.model.Movie;
+import net.bashayer.popularmovies.data.model.MovieModel;
+import net.bashayer.popularmovies.movie.details.DetailsActivity;
+import net.bashayer.popularmovies.R;
 
-import org.json.JSONException;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.bashayer.popularmovies.Constants.MOVIE_KEY;
-import static net.bashayer.popularmovies.Constants.POPULAR_FILTER;
-import static net.bashayer.popularmovies.Constants.TOP_RATED_FILTER;
+import static net.bashayer.popularmovies.common.Constants.FAVORITE_MOVIES;
+import static net.bashayer.popularmovies.common.Constants.MOVIE_KEY;
+import static net.bashayer.popularmovies.common.Constants.POPULAR_FILTER;
+import static net.bashayer.popularmovies.common.Constants.TOP_RATED_FILTER;
 
 public class MainActivity extends AppCompatActivity implements OnMovieClickListener {
 
     private MoviesAdapter adapter;
     private RecyclerView recyclerView;
+    private List<MovieModel> movies;
+    MovieViewModel viewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        movies = new ArrayList<MovieModel>();
         initAdapter(); //init adapter with empty list
+        viewModel = ViewModelProviders.of(this).get(MovieViewModel.class);
         getMoviesList(TOP_RATED_FILTER);
     }
 
@@ -54,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements OnMovieClickListe
             getMoviesList(POPULAR_FILTER);
         } else if (id == R.id.action_top_rated) {
             getMoviesList(TOP_RATED_FILTER);
+        } else if (id == R.id.action_favorite) {
+            getMoviesList(FAVORITE_MOVIES);
         } else {
             return super.onOptionsItemSelected(item);
         }
@@ -63,44 +67,38 @@ public class MainActivity extends AppCompatActivity implements OnMovieClickListe
     private void initAdapter() {
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
         recyclerView = findViewById(R.id.recycler_view);
-        adapter = new MoviesAdapter(new ArrayList<Movie>(), this, this);
+        adapter = new MoviesAdapter(movies, this, this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
     }
 
-    private void getMoviesList(String filter) {
-        new GetMoviesTask().execute(filter);
+    private void getMoviesList(final String filter) {
+        if (filter.equals(POPULAR_FILTER) || filter.equals(TOP_RATED_FILTER)) {
+            viewModel.getMovies(false, filter).observe(this, new Observer<List<MovieModel>>() {
+                @Override
+                public void onChanged(List<MovieModel> movieModels) {
+                    movies.clear();
+                    movies.addAll(movieModels);
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        } else if (filter.equals(FAVORITE_MOVIES)) {
+            viewModel.getMovies(true, "").observe(this, new Observer<List<MovieModel>>() {
+                @Override
+                public void onChanged(List<MovieModel> movieModels) {
+                    movies.clear();
+                    movies.addAll(movieModels);
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        }
     }
 
     @Override
-    public void onMovieClicked(Movie movie) {
+    public void onMovieClicked(MovieModel movieModel) {
         Intent intent = new Intent(this, DetailsActivity.class);
-        intent.putExtra(MOVIE_KEY, movie);
+        intent.putExtra(MOVIE_KEY, movieModel);
         startActivity(intent);
-    }
-
-    public class GetMoviesTask extends AsyncTask<String, Void, List<Movie>> {
-
-        @Override
-        protected List<Movie> doInBackground(String... filter) {
-            try {
-                String response = NetworkUtils.getMoviesListResponse(filter[0]);
-                return JSONUtils.parseMoviesJSON(response);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return new ArrayList<>();
-        }
-
-        @Override
-        protected void onPostExecute(List<Movie> movies) {
-            super.onPostExecute(movies);
-            adapter.updateData(movies);
-            //when the list is empty add holder
-        }
-
     }
 
     public void showMessage(String message) {

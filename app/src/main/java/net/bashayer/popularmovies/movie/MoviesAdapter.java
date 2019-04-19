@@ -1,4 +1,4 @@
-package net.bashayer.popularmovies;
+package net.bashayer.popularmovies.movie;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,23 +8,24 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 
-import net.bashayer.popularmovies.network.model.Movie;
+import net.bashayer.popularmovies.R;
+import net.bashayer.popularmovies.data.model.MovieModel;
 
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import static net.bashayer.popularmovies.Constants.IMAGES_BASE_URL;
+import static net.bashayer.popularmovies.common.Constants.IMAGES_BASE_URL;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder> {
 
-    private List<Movie> movies;
+    private List<MovieModel> movieModels;
     private Context context;
     private OnMovieClickListener onMovieClickListener;
 
-    public MoviesAdapter(List<Movie> movies, Context context, OnMovieClickListener onMovieClickListener) {
-        this.movies = movies;
+    public MoviesAdapter(List<MovieModel> movieModels, Context context, OnMovieClickListener onMovieClickListener) {
+        this.movieModels = movieModels;
         this.context = context;
         this.onMovieClickListener = onMovieClickListener;
     }
@@ -37,24 +38,24 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        final Movie movie = movies.get(position);
-        holder.bind(movie);
+        final MovieModel movieModel = movieModels.get(position);
+        holder.bind(movieModel);
 
         holder.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onMovieClickListener.onMovieClicked(movie);
+                onMovieClickListener.onMovieClicked(movieModel);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return movies.size();
+        return movieModels.size();
     }
 
-    public void updateData(List<Movie> movies) {
-        this.movies = movies;
+    public void updateData(List<MovieModel> movieModels) {
+        this.movieModels = movieModels;
         notifyDataSetChanged();
     }
 
@@ -67,8 +68,8 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.ViewHolder
             imageView = itemView.findViewById(R.id.movie_poster);
         }
 
-        public void bind(Movie movie) {
-            String image = IMAGES_BASE_URL + movie.getPosterPath();
+        public void bind(MovieModel movieModel) {
+            String image = IMAGES_BASE_URL + movieModel.getPosterPath();
             Glide.with(context)
                     .load(image)
                     .placeholder(R.drawable.ic_local_movies_black_24dp)
